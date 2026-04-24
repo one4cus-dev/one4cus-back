@@ -22,5 +22,11 @@ export const appConfig = {
     debug: env.DEBUG,
     enablePayments: env.ENABLE_PAYMENTS,
     maintenanceMode: env.MAINTENANCE_MODE
+  },
+
+  integrations:{
+    aiServiceUrl: env.INTERNAL_AI_SERVICE_URL,
+    aiServiceKey: env.INTERNAL_AI_SERVICE_KEY
+
   }
 };

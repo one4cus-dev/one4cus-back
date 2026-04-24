@@ -11,7 +11,7 @@ const envSchema = z.object({
   HOST: z.string().min(1),
   API_BASE_URL: z.string().url(),
 
-  DATABASE_URL: z.string().optional(),
+  DATABASE_URL: z.string().url(),
 
   JWT_SECRET: z.string().optional(),
   SUPABASE_URL: z.string().optional(),
@@ -19,7 +19,10 @@ const envSchema = z.object({
 
   DEBUG: z.coerce.boolean().default(true),
   ENABLE_PAYMENTS: z.coerce.boolean().default(false),
-  MAINTENANCE_MODE: z.coerce.boolean().default(false)
+  MAINTENANCE_MODE: z.coerce.boolean().default(false),
+
+  INTERNAL_AI_SERVICE_URL: z.string().url(),
+  INTERNAL_AI_SERVICE_KEY: z.string().min(1)
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
