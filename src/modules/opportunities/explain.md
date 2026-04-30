@@ -1,0 +1,1 @@
+@manage real opportunity/deal listings

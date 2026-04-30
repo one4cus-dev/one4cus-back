@@ -40,4 +40,3 @@ export type CreateOpportunityBody = z.infer<
   typeof createOpportunityBodySchema
 >;
 
-export type OpportunityParams = z.infer<typeof opportunityParamsSchema>;

@@ -26,7 +26,10 @@ export const appConfig = {
 
   integrations:{
     aiServiceUrl: env.INTERNAL_AI_SERVICE_URL,
-    aiServiceKey: env.INTERNAL_AI_SERVICE_KEY
+    aiServiceKey: env.INTERNAL_AI_SERVICE_KEY,
+    n8nInternalApiKey: env.N8N_INTERNAL_API_KEY
 
-  }
+  },
+  
+  
 };

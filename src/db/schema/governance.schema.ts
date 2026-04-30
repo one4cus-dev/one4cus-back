@@ -1,12 +1,4 @@
 // src\db\schema\governance.schema.ts
-/*
-this include the schema definitions for governance-related tables
-review_actions
-provider_claim_tokens
-provider_account_links
-audit_logs
-*/
-
 import {
   index,
   pgTable,

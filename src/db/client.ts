@@ -7,7 +7,7 @@ import * as schema from "./schema/index.js";
 const { Pool } = pg;
 
 const pool = new Pool({
-  connectionString: appConfig.database.url
+  connectionString: appConfig.database.url,
 });
 
 export const db = drizzle(pool, { schema });

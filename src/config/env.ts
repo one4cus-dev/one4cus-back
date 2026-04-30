@@ -22,7 +22,9 @@ const envSchema = z.object({
   MAINTENANCE_MODE: z.coerce.boolean().default(false),
 
   INTERNAL_AI_SERVICE_URL: z.string().url(),
-  INTERNAL_AI_SERVICE_KEY: z.string().min(1)
+  INTERNAL_AI_SERVICE_KEY: z.string().min(1),
+
+  N8N_INTERNAL_API_KEY: z.string().min(1)
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

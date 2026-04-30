@@ -13,6 +13,8 @@ import { usersRoutes } from "./modules/users/users.route.js";
 import { providersRoutes } from "./modules/providers/providers.route.js";
 import {servicesRoutes} from "./modules/services/services.route.js";
 import { opportunitiesRoutes } from "./modules/opportunities/opportunities.route.js";
+import {ingestionRoutes} from "./modules/ingestion/ingestion.route.js";
+import { draftsRoutes } from "./modules/drafts/drafts.route.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -42,6 +44,9 @@ export async function buildApp() {
   await app.register(providersRoutes, { prefix: "/api" });
   await app.register(servicesRoutes, { prefix: "/api" });
   await app.register(opportunitiesRoutes, { prefix: "/api" });
+  await app.register(ingestionRoutes, { prefix: "/api" });
+  await app.register(draftsRoutes, { prefix: "/api" });
+  
   //register hooks
   registerNotFoundHandler(app);
   registerErrorHandler(app);
