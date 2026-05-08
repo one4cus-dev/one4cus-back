@@ -1,5 +1,6 @@
 // src\modules\ingestion\ingestion.repository.ts
 import { db } from "../../db/index.js";
+import {eq} from "drizzle-orm";
 import {
   sourceUploads,
   ocrResults,
@@ -11,8 +12,14 @@ import {
 } from "../../db/schema/index.js";
 
 export async function createSourceUpload(data: typeof sourceUploads.$inferInsert) {
-  const [row] = await db.insert(sourceUploads).values(data).returning();
-  return row;
+  const [row] = await db.insert(sourceUploads).values(data).onConflictDoNothing().returning();
+  if(!row){
+    const existing = await db.query.sourceUploads.findFirst({
+      where: eq(sourceUploads.driveFileId, data.driveFileId)
+    });
+    return{row: existing, isNew: false};
+  }
+  return {row, isNew: true};
 }
 
 export async function createOcrResult(data: typeof ocrResults.$inferInsert) {

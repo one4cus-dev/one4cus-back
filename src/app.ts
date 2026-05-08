@@ -15,6 +15,7 @@ import {servicesRoutes} from "./modules/services/services.route.js";
 import { opportunitiesRoutes } from "./modules/opportunities/opportunities.route.js";
 import {ingestionRoutes} from "./modules/ingestion/ingestion.route.js";
 import { draftsRoutes } from "./modules/drafts/drafts.route.js";
+import { publicRoutes } from "./modules/public/public.route.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -46,6 +47,7 @@ export async function buildApp() {
   await app.register(opportunitiesRoutes, { prefix: "/api" });
   await app.register(ingestionRoutes, { prefix: "/api" });
   await app.register(draftsRoutes, { prefix: "/api" });
+  await app.register(publicRoutes, { prefix: "/api" });
   
   //register hooks
   registerNotFoundHandler(app);

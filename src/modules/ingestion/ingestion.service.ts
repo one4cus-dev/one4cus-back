@@ -15,7 +15,9 @@ function valueAsNumberString(value: unknown): string | undefined {
 }
 
 export async function ingestAiDraft(input: IngestAiDraftBody) {
-  const sourceUpload = await repo.createSourceUpload({
+  
+  
+  const { row: sourceUpload, isNew } = await repo.createSourceUpload({
     driveFileId: input.source.driveFileId,
     driveFolderId: input.source.driveFolderId,
     fileName: input.source.fileName,
@@ -31,6 +33,18 @@ export async function ingestAiDraft(input: IngestAiDraftBody) {
     duplicateStatus: "unique",
   });
 
+  // if duplicate, return existing data without re-processing
+  if (!isNew) {
+    return {
+      sourceUpload,
+      skipped: true,
+      message: "File already processed. Skipping.",
+    };
+  }
+
+  if(!sourceUpload) throw new Error("Failed to create source upload");
+
+  
   const ocrResult = await repo.createOcrResult({
     sourceUploadId: sourceUpload.id,
     ocrProvider: input.ocr.ocrProvider,
@@ -169,7 +183,8 @@ export async function ingestAiDraft(input: IngestAiDraftBody) {
 
     opportunityDrafts.push(draft);
   }
-// Build rows for Google Sheets export (for internal review purposes)
+
+  // Build rows for Google Sheets export (for internal review purposes)
   const sheetRows = {
     provider: buildProviderSheetRow({
       sourceUpload,
@@ -192,8 +207,7 @@ export async function ingestAiDraft(input: IngestAiDraftBody) {
         aiOutput,
       })
     ),
-    
-  }
+  };
 
   return {
     sourceUpload,
