@@ -11,7 +11,7 @@ async function startServer() {
       host: appConfig.host
     });
 
-    app.log.info(`Server running at http://${appConfig.host}:${appConfig.port}`);
+    app.log.info(`Server running on host=${appConfig.host}, port=${appConfig.port}`);
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

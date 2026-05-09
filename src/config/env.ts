@@ -7,9 +7,9 @@ dotenv.config();
 const envSchema = z.object({
   APP_NAME: z.string().min(1),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  PORT: z.coerce.number().int().positive(),
-  HOST: z.string().min(1),
-  API_BASE_URL: z.string().url(),
+  PORT: z.coerce.number().int().positive().default(5000),
+  HOST: z.string().min(1).default("0.0.0.0"),
+  API_BASE_URL: z.string().url().optional(),
 
   DATABASE_URL: z.string().url(),
 
@@ -17,12 +17,12 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
-  DEBUG: z.coerce.boolean().default(true),
+  DEBUG: z.coerce.boolean().default(false),
   ENABLE_PAYMENTS: z.coerce.boolean().default(false),
   MAINTENANCE_MODE: z.coerce.boolean().default(false),
 
-  INTERNAL_AI_SERVICE_URL: z.string().url(),
-  INTERNAL_AI_SERVICE_KEY: z.string().min(1),
+  INTERNAL_AI_SERVICE_URL: z.string().url().optional(),
+  INTERNAL_AI_SERVICE_KEY: z.string().min(1).optional(),
 
   N8N_INTERNAL_API_KEY: z.string().min(1)
 });
