@@ -2,4 +2,5 @@ node_modules
 dist
 .env
 .env.dev
+.env.docker
 .drizzle
