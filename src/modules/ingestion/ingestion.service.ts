@@ -3,6 +3,7 @@ import { INGESTION_STATUSES, JOB_STATUSES } from "../../common/constants/index.j
 import type { IngestAiDraftBody } from "./ingestion.schema.js";
 import * as repo from "./ingestion.repository.js";
 import { buildProviderSheetRow, buildServiceSheetRow, buildOpportunitySheetRow } from "./ingestion-sheet.mapper.js";
+import { normalizeServiceCategory,normalizeDealCategory } from "../../common/utils/normalize-category.js";
 
 function valueAsString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
@@ -130,7 +131,7 @@ export async function ingestAiDraft(input: IngestAiDraftBody) {
         valueAsString(service.serviceName) ??
         "Untitled Service",
 
-      category: valueAsString(service.category),
+      category: normalizeServiceCategory(service.category),
       locationText: valueAsString(service.locationText),
       tagsJson: service.tags,
       description: valueAsString(service.description),
@@ -160,7 +161,7 @@ export async function ingestAiDraft(input: IngestAiDraftBody) {
         valueAsString(opportunity.opportunityName) ??
         "Untitled Opportunity",
 
-      category: valueAsString(opportunity.category),
+      category: normalizeDealCategory(opportunity.category),
       shortSummary: valueAsString(opportunity.shortSummary),
       fullDescription: valueAsString(opportunity.fullDescription),
 
