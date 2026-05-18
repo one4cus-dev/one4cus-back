@@ -21,8 +21,8 @@ const envSchema = z.object({
   ENABLE_PAYMENTS: z.coerce.boolean().default(false),
   MAINTENANCE_MODE: z.coerce.boolean().default(false),
 
-  INTERNAL_AI_SERVICE_URL: z.string().url().optional(),
-  INTERNAL_AI_SERVICE_KEY: z.string().min(1).optional(),
+  FRONTEND_REVALIDATION_URL: z.string().url().optional(),
+FRONTEND_REVALIDATION_SECRET: z.string().optional(),
 
   N8N_INTERNAL_API_KEY: z.string().min(1)
 });

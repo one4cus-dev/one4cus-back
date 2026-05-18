@@ -1,4 +1,4 @@
-// src/config/app-config.ts
+// src\config\app-config.ts
 import { env } from "./env.js";
 
 const fallbackApiBaseUrl =
@@ -34,8 +34,9 @@ export const appConfig = {
   },
 
   integrations: {
-    aiServiceUrl: env.INTERNAL_AI_SERVICE_URL ?? "",
-    aiServiceKey: env.INTERNAL_AI_SERVICE_KEY ?? "",
-    n8nInternalApiKey: env.N8N_INTERNAL_API_KEY
-  }
+    
+    n8nInternalApiKey: env.N8N_INTERNAL_API_KEY,
+    frontendRevalidationUrl: env.FRONTEND_REVALIDATION_URL,
+    frontendRevalidationSecret: env.FRONTEND_REVALIDATION_SECRET,
+  },
 };

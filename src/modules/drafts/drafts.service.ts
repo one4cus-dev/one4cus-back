@@ -5,6 +5,7 @@ import { REVIEW_ACTIONS, REVIEW_ENTITY_TYPES } from "../../common/constants/inde
 import type { ReviewDraftBody } from "./drafts.schema.js";
 import * as repo from "./drafts.repository.js";
 import type { DbOrTx } from "../../db/types.js";
+import { revalidateFrontend } from "../../lib/revalidate-frontend.js";
 
 function toRejectedStatus(decision: "reject" | "needs_changes") {
   return decision === "reject" ? "rejected" : "needs_changes";
@@ -91,7 +92,7 @@ async function resolveProviderForChildDraft(
 }
 
 export async function reviewDraft(input: ReviewDraftBody) {
-  return await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     if (input.draftType === "provider") {
       return await reviewProviderDraft(tx, input);
     }
@@ -102,6 +103,67 @@ export async function reviewDraft(input: ReviewDraftBody) {
 
     return await reviewOpportunityDraft(tx, input);
   });
+
+  if(input.decision === "approve"){
+    await revalidateAfterDraftApproval(input.draftType, result);
+  }
+  return result;
+}
+
+async function revalidateAfterDraftApproval(
+  draftType: ReviewDraftBody["draftType"],
+  result: unknown
+) {
+  const data = result as {
+    action?: string;
+    publishedProvider?: { slug: string };
+    publishedService?: { slug: string };
+    publishedOpportunity?: { slug: string };
+  };
+
+  if (data.action === "already_published") {
+    return;
+  }
+
+  if (draftType === "provider") {
+    await revalidateFrontend({
+      type: "all",
+    });
+
+    return;
+  }
+
+  if (draftType === "service" && data.publishedService?.slug) {
+    await revalidateFrontend({
+      type: "service",
+      slug: data.publishedService.slug,
+    });
+
+    await revalidateFrontend({
+      type: "services",
+    });
+
+    await revalidateFrontend({
+      type: "home",
+    });
+
+    return;
+  }
+
+  if (draftType === "opportunity" && data.publishedOpportunity?.slug) {
+    await revalidateFrontend({
+      type: "deal",
+      slug: data.publishedOpportunity.slug,
+    });
+
+    await revalidateFrontend({
+      type: "deals",
+    });
+
+    await revalidateFrontend({
+      type: "home",
+    });
+  }
 }
 
 async function reviewProviderDraft(tx: DbOrTx, input: ReviewDraftBody) {
