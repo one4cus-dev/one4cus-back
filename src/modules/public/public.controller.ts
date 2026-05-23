@@ -11,12 +11,36 @@ const idParamsSchema = z.object({
 
 const slugParamsSchema = z.object({
   slug: z.string().min(2).max(255),
-})
+});
+
+function parseCommaList(value: unknown){
+  if(!value)return undefined;
+
+  if (Array.isArray(value)){
+    return value
+      .flatMap((item) => String(item).split(","))
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseBooleanQuery(value: unknown){
+  if(value === undefined || value === null || value === "") return undefined;
+  if(value=== true || value === "true" || value === "1")return true;
+  if(value === false || value === "false" || value === "0") return false;
+  return undefined;
+}
 const publicListQuerySchema = z.object({
-    search: z.string().optional(),
-    category: z.string().optional(),
-    city: z.string().optional(),
-    type: z.string().optional(), // provider, service, opportunity
+    search: z.string().trim().optional(),
+    city: z.string().trim().optional(),
+    type: z.string().trim().optional(),
+    category: z.preprocess(parseCommaList, z.array(z.string().trim()).optional()),
+    verified: z.preprocess(parseBooleanQuery, z.boolean().optional()),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(50).default(12),
 });

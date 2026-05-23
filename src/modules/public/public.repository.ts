@@ -1,5 +1,6 @@
 // src\modules\public\public.repository.ts
 import { and, count, eq, ilike, or, sql } from "drizzle-orm";
+import type {SQL} from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   providers,
@@ -10,9 +11,10 @@ import { PUBLIC_ENTITY_STATUSES } from "../../common/constants/index.js";
 
 type PublicListQuery = {
   search?: string;
-  category?: string;
-    city?: string;
-    type?: string; // provider, service, opportunity
+  category?: string[];
+  city?: string;
+  type?: string; // provider, service, opportunity
+  verified?: boolean;
   page: number;
   limit: number;
 };
@@ -36,6 +38,56 @@ function buildPaginationMeta(total: number, page: number, limit: number) {
     hasPreviousPage: page > 1,
   };
 }
+
+function createServiceCategoryConditions(categories?: string[]) {
+  if (!categories || categories.length === 0) {
+    return undefined;
+  }
+
+  const categoryConditions = categories
+    .map((category) => category.trim())
+    .filter(Boolean)
+    .map((category) =>
+      or(
+        ilike(serviceListings.category, `%${category}%`),
+        ilike(serviceListings.title, `%${category}%`),
+        ilike(serviceListings.description, `%${category}%`)
+      )
+    )
+    .filter((condition): condition is SQL => Boolean(condition));
+
+
+  if (categoryConditions.length === 0) {
+    return undefined;
+  }
+
+  return or(...categoryConditions);
+}
+
+{/*function createOpportunityCategoryConditions(categories?: string[]) {
+  if (!categories || categories.length === 0) {
+    return undefined;
+  }
+
+  const categoryConditions = categories
+    .map((category) => category.trim())
+    .filter(Boolean)
+    .map((category) =>
+      or(
+        ilike(opportunityListings.category, `%${category}%`),
+        ilike(opportunityListings.title, `%${category}%`),
+        ilike(opportunityListings.shortSummary, `%${category}%`),
+        ilike(opportunityListings.fullDescription, `%${category}%`)
+      )
+    )
+    .filter((condition): condition is SQL => Boolean(condition));
+
+  if (categoryConditions.length === 0) {
+    return undefined;
+  }
+
+  return or(...categoryConditions);
+}*/}
 
 export async function listPublishedProviders(query: PublicListQuery) {
   const { page, limit, offset } = getPagination(query);
@@ -122,18 +174,26 @@ export async function listPublishedServices(query: PublicListQuery) {
       or(
         ilike(serviceListings.title, `%${query.search}%`),
         ilike(serviceListings.description, `%${query.search}%`),
-        ilike(providers.businessName, `%${query.search}%`)
+        ilike(providers.businessName, `%${query.search}%`),
+        ilike(serviceListings.locationText, `%${query.search}%`)
       )!
     );
   }
 
-  if (query.category) {
-    conditions.push(ilike(serviceListings.category, `%${query.category}%`));
-  }
+  const categoryCondition = createServiceCategoryConditions(query.category);
+
+if (categoryCondition) {
+  conditions.push(categoryCondition);
+}
 
   if (query.city) {
-    conditions.push(ilike(providers.city, `%${query.city}%`));
-  }
+  conditions.push(
+    or(
+      ilike(providers.city, `%${query.city}%`),
+      ilike(serviceListings.locationText, `%${query.city}%`)
+    )!
+  );
+}
 
   const whereClause = and(...conditions);
 

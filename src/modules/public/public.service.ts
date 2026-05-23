@@ -4,9 +4,10 @@ import * as repo from "./public.repository.js";
 
 export type PublicListQuery = {
     search?: string;
-    category?: string;
+    category?: string[];
     city?: string;
     type?: string; // provider, service, opportunity
+    verified?: boolean;
     page: number;
     limit: number;
 };
