@@ -4,10 +4,21 @@ import { successResponse } from "../../common/utils/response.js";
 import { validateRequest } from "../../common/validation/validate-request.js";
 import { reviewDraftBodySchema } from "./drafts.schema.js";
 import * as draftsService from "./drafts.service.js";
+import { syncSheetDraftBodySchema } from "./drafts.schema.js";
 
 export async function reviewDraft(request: FastifyRequest, reply: FastifyReply) {
   const body = validateRequest(reviewDraftBodySchema, request.body);
   const result = await draftsService.reviewDraft(body);
 
   return reply.status(200).send(successResponse("Draft review synced", result));
+}
+
+export async function syncSheetDraftRow(
+  request: FastifyRequest,
+  reply: FastifyReply 
+){
+  const body = validateRequest(syncSheetDraftBodySchema, request.body);
+  const result = await draftsService.syncSheetDraftRow(body);
+
+  return reply.status(200).send(successResponse("Draft row synced", result));
 }

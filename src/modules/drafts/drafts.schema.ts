@@ -9,4 +9,12 @@ export const reviewDraftBodySchema = z.object({
   reviewedByUserId: z.string().uuid().optional(),
 });
 
+//this allows n8n to send different row data for provider, service, opportunity 
+export const syncSheetDraftBodySchema = z.object({
+  draftType: z.enum(["provider", "service", "opportunity"]),
+  draftId: z.string().uuid(),
+  data: z.record(z.string(), z.unknown()),
+})
+
 export type ReviewDraftBody = z.infer<typeof reviewDraftBodySchema>;
+export type SyncSheetDraftBody = z.infer<typeof syncSheetDraftBodySchema>;

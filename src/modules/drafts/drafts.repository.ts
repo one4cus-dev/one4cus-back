@@ -352,3 +352,55 @@ export async function createAuditLog(
   const [row] = await tx.insert(auditLogs).values(data).returning();
   return row;
 }
+
+//these functions only update draft tables not the permenent published tables
+export async function updateProviderDraftFromSheet(
+  tx: DbOrTx,
+  id: string,
+  data: Partial<typeof providerDrafts.$inferInsert>
+) {
+  const [row] = await tx
+    .update(providerDrafts)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(providerDrafts.id, id))
+    .returning();
+
+  return row ?? null;
+}
+
+export async function updateServiceDraftFromSheet(
+  tx: DbOrTx,
+  id: string,
+  data: Partial<typeof serviceListingDrafts.$inferInsert>
+) {
+  const [row] = await tx
+    .update(serviceListingDrafts)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(serviceListingDrafts.id, id))
+    .returning();
+
+  return row ?? null;
+}
+
+export async function updateOpportunityDraftFromSheet(
+  tx: DbOrTx,
+  id: string,
+  data: Partial<typeof opportunityListingDrafts.$inferInsert>
+) {
+  const [row] = await tx
+    .update(opportunityListingDrafts)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(opportunityListingDrafts.id, id))
+    .returning();
+
+  return row ?? null;
+}

@@ -7,6 +7,9 @@ import * as repo from "./drafts.repository.js";
 import type { DbOrTx } from "../../db/types.js";
 import { revalidateFrontend } from "../../lib/revalidate-frontend.js";
 
+import type { SyncSheetDraftBody } from "./drafts.schema.js";
+import { mapProviderSheetData, mapServiceSheetData, mapOpportunitySheetData, removeUndefinedValues } from "./drafts-sheet.mapper.js";
+
 function toRejectedStatus(decision: "reject" | "needs_changes") {
   return decision === "reject" ? "rejected" : "needs_changes";
 }
@@ -108,6 +111,100 @@ export async function reviewDraft(input: ReviewDraftBody) {
     await revalidateAfterDraftApproval(input.draftType, result);
   }
   return result;
+}
+
+//this function allows n8n to sync the draft data from google sheet to our database when the admin updates the data in google sheet, it will be called in n8n workflow after the admin updates the data in google sheet and it will update the draft data in our database with the updated data from google sheet
+//this do find draft->reject update if already published->map google sheet fields to DB fields->normalize category->update draft table
+export async function syncSheetDraftRow(input: SyncSheetDraftBody) {
+  return await db.transaction(async (tx) => {
+    if (input.draftType === "provider") {
+      const draft = await repo.findProviderDraft(tx, input.draftId);
+
+      if (!draft) {
+        throw new AppError("Provider draft not found", 404, "DRAFT_NOT_FOUND");
+      }
+
+      if (draft.draftStatus === "published") {
+        throw new AppError(
+          "Cannot update a published provider draft from Google Sheet",
+          409,
+          "DRAFT_ALREADY_PUBLISHED"
+        );
+      }
+
+      const mappedData = removeUndefinedValues(mapProviderSheetData(input.data));
+
+      const updated = await repo.updateProviderDraftFromSheet(
+        tx,
+        input.draftId,
+        mappedData
+      );
+
+      return {
+        action: "draft_synced",
+        draftType: input.draftType,
+        draft: updated,
+      };
+    }
+
+    if (input.draftType === "service") {
+      const draft = await repo.findServiceDraft(tx, input.draftId);
+
+      if (!draft) {
+        throw new AppError("Service draft not found", 404, "DRAFT_NOT_FOUND");
+      }
+
+      if (draft.draftStatus === "published") {
+        throw new AppError(
+          "Cannot update a published service draft from Google Sheet",
+          409,
+          "DRAFT_ALREADY_PUBLISHED"
+        );
+      }
+
+      const mappedData = removeUndefinedValues(mapServiceSheetData(input.data));
+
+      const updated = await repo.updateServiceDraftFromSheet(
+        tx,
+        input.draftId,
+        mappedData
+      );
+
+      return {
+        action: "draft_synced",
+        draftType: input.draftType,
+        draft: updated,
+      };
+    }
+
+    const draft = await repo.findOpportunityDraft(tx, input.draftId);
+
+    if (!draft) {
+      throw new AppError("Opportunity draft not found", 404, "DRAFT_NOT_FOUND");
+    }
+
+    if (draft.draftStatus === "published") {
+      throw new AppError(
+        "Cannot update a published opportunity draft from Google Sheet",
+        409,
+        "DRAFT_ALREADY_PUBLISHED"
+      );
+    }
+
+    const mappedData = removeUndefinedValues(mapOpportunitySheetData(input.data));
+
+    const updated = await repo.updateOpportunityDraftFromSheet(
+      tx,
+      input.draftId,
+      mappedData
+    );
+
+    return {
+      action: "draft_synced",
+      draftType: input.draftType,
+      draft: updated,
+    };
+  });
 }
 
 async function revalidateAfterDraftApproval(
