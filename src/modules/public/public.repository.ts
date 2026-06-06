@@ -64,7 +64,7 @@ function createServiceCategoryConditions(categories?: string[]) {
   return or(...categoryConditions);
 }
 
-{/*function createOpportunityCategoryConditions(categories?: string[]) {
+function createOpportunityCategoryConditions(categories?: string[]) {
   if (!categories || categories.length === 0) {
     return undefined;
   }
@@ -77,7 +77,8 @@ function createServiceCategoryConditions(categories?: string[]) {
         ilike(opportunityListings.category, `%${category}%`),
         ilike(opportunityListings.title, `%${category}%`),
         ilike(opportunityListings.shortSummary, `%${category}%`),
-        ilike(opportunityListings.fullDescription, `%${category}%`)
+        ilike(opportunityListings.fullDescription, `%${category}%`),
+        ilike(opportunityListings.investmentType, `%${category}%`)
       )
     )
     .filter((condition): condition is SQL => Boolean(condition));
@@ -87,7 +88,7 @@ function createServiceCategoryConditions(categories?: string[]) {
   }
 
   return or(...categoryConditions);
-}*/}
+}
 
 export async function listPublishedProviders(query: PublicListQuery) {
   const { page, limit, offset } = getPagination(query);
@@ -173,10 +174,12 @@ export async function listPublishedServices(query: PublicListQuery) {
     conditions.push(
       or(
         ilike(serviceListings.title, `%${query.search}%`),
+        ilike(serviceListings.category, `%${query.search}%`),
         ilike(serviceListings.description, `%${query.search}%`),
+        ilike(serviceListings.locationText, `%${query.search}%`),
         ilike(providers.businessName, `%${query.search}%`),
-        ilike(serviceListings.locationText, `%${query.search}%`)
-      )!
+        ilike(providers.city, `%${query.search}%`),
+      )!,
     );
   }
 
@@ -327,19 +330,32 @@ export async function listPublishedOpportunities(query: PublicListQuery) {
     conditions.push(
       or(
         ilike(opportunityListings.title, `%${query.search}%`),
+        ilike(opportunityListings.category, `%${query.search}%`),
         ilike(opportunityListings.shortSummary, `%${query.search}%`),
         ilike(opportunityListings.fullDescription, `%${query.search}%`),
-        ilike(providers.businessName, `%${query.search}%`)
+        ilike(opportunityListings.investmentType, `%${query.search}%`),
+        ilike(opportunityListings.expectedRoiText, `%${query.search}%`),
+        ilike(providers.businessName, `%${query.search}%`),
+        ilike(providers.city, `%${query.search}%`),
       )!
     );
   }
 
-  if (query.category) {
-    conditions.push(ilike(opportunityListings.category, `%${query.category}%`));
-  }
+  const categoryCondition = createOpportunityCategoryConditions(query.category);
 
-  if (query.city) {
-    conditions.push(ilike(opportunityListings.city, `%${query.city}%`));
+if (categoryCondition) {
+  conditions.push(categoryCondition);
+}
+
+  if(query.city){
+    conditions.push(
+      or(
+        ilike(opportunityListings.city, `%${query.city}%`),
+        ilike(opportunityListings.district, `%${query.city}%`),
+        ilike(opportunityListings.province, `%${query.city}%`),
+        ilike(providers.city, `%${query.city}%`)
+      )!,
+    );
   }
 
   const whereClause = and(...conditions);
