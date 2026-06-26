@@ -12,6 +12,11 @@ import {
   auditLogs,
 } from "../../db/schema/index.js";
 import type { DbOrTx } from "../../db/types.js";
+import {
+  booleanOrFalse,
+  emptyToUndefined,
+  numberStringOrUndefined,
+} from "../../common/utils/db-value.js";
 
 export async function reviewDraftInTransaction<T>(
   callback: Parameters<typeof db.transaction>[0]
@@ -206,43 +211,55 @@ export async function publishProviderDraft(
   tx: DbOrTx,
   draft: typeof providerDrafts.$inferSelect
 ) {
+  const businessName =
+    emptyToUndefined(draft.businessName) ?? "Unknown Provider";
+
+  const providerType = emptyToUndefined(draft.providerType) ?? "both";
+
+  const slug = `${businessName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")}-${draft.id.slice(0, 6)}`;
+
   const [row] = await tx
     .insert(providers)
     .values({
-      slug: `${draft.businessName.toLowerCase().replaceAll(" ", "-")}-${draft.id.slice(0, 6)}`,
-      providerType: draft.providerType,
+      slug,
+      providerType,
       status: "published",
       claimStatus: "unclaimed",
-      isPlaceholder: draft.isPlaceholder,
+      isPlaceholder: booleanOrFalse(draft.isPlaceholder),
 
-      businessName: draft.businessName,
-      displayName: draft.displayName,
-      description: draft.description,
-      shortDescription: draft.shortDescription,
+      businessName,
+      displayName: emptyToUndefined(draft.displayName),
+      description: emptyToUndefined(draft.description),
+      shortDescription: emptyToUndefined(draft.shortDescription),
 
-      primaryPhone: draft.primaryPhone,
-      whatsappNumber: draft.whatsappNumber,
-      email: draft.email,
-      websiteUrl: draft.websiteUrl,
+      primaryPhone: emptyToUndefined(draft.primaryPhone),
+      whatsappNumber: emptyToUndefined(draft.whatsappNumber),
+      email: emptyToUndefined(draft.email),
+      websiteUrl: emptyToUndefined(draft.websiteUrl),
 
-      facebookUrl: draft.facebookUrl,
-      instagramUrl: draft.instagramUrl,
-      tiktokUrl: draft.tiktokUrl,
-      linkedinUrl: draft.linkedinUrl,
+      facebookUrl: emptyToUndefined(draft.facebookUrl),
+      instagramUrl: emptyToUndefined(draft.instagramUrl),
+      tiktokUrl: emptyToUndefined(draft.tiktokUrl),
+      linkedinUrl: emptyToUndefined(draft.linkedinUrl),
 
-      addressLine1: draft.addressLine1,
-      addressLine2: draft.addressLine2,
-      city: draft.city,
-      district: draft.district,
-      province: draft.province,
-      postalCode: draft.postalCode,
-      country: draft.country,
+      addressLine1: emptyToUndefined(draft.addressLine1),
+      addressLine2: emptyToUndefined(draft.addressLine2),
+      city: emptyToUndefined(draft.city),
+      district: emptyToUndefined(draft.district),
+      province: emptyToUndefined(draft.province),
+      postalCode: emptyToUndefined(draft.postalCode),
+      country: emptyToUndefined(draft.country) ?? "Sri Lanka",
 
-      latitude: draft.latitude,
-      longitude: draft.longitude,
+      latitude: numberStringOrUndefined(draft.latitude),
+      longitude: numberStringOrUndefined(draft.longitude),
 
-      logoUrl: draft.logoUrl,
-      coverImageUrl: draft.coverImageUrl,
+      logoUrl: emptyToUndefined(draft.logoUrl),
+      coverImageUrl: emptyToUndefined(draft.coverImageUrl),
 
       publishedAt: new Date(),
     })
@@ -250,31 +267,39 @@ export async function publishProviderDraft(
 
   return row;
 }
-
 export async function publishServiceDraft(
   tx: DbOrTx,
   draft: typeof serviceListingDrafts.$inferSelect,
   providerId: string
 ) {
+  const title = emptyToUndefined(draft.title) ?? "Untitled Service";
+
+  const slug = `${title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")}-${draft.id.slice(0, 6)}`;
+
   const [row] = await tx
     .insert(serviceListings)
     .values({
       providerId,
-      slug: `${draft.title.toLowerCase().replaceAll(" ", "-")}-${draft.id.slice(0, 6)}`,
+      slug,
       status: "published",
 
-      title: draft.title,
-      category: draft.category,
-      locationText: draft.locationText,
-      tagsJson: draft.tagsJson,
-      description: draft.description,
+      title,
+      category: emptyToUndefined(draft.category),
+      locationText: emptyToUndefined(draft.locationText),
+      tagsJson: draft.tagsJson ?? [],
+      description: emptyToUndefined(draft.description),
 
-      perWorkRate: draft.perWorkRate,
-      currency: draft.currency,
-      availability: draft.availability,
-      warrantyType: draft.warrantyType,
-      experienceText: draft.experienceText,
-      thumbnailImageUrl: draft.thumbnailImageUrl,
+      perWorkRate: numberStringOrUndefined(draft.perWorkRate),
+      currency: emptyToUndefined(draft.currency) ?? "LKR",
+      availability: emptyToUndefined(draft.availability),
+      warrantyType: emptyToUndefined(draft.warrantyType),
+      experienceText: emptyToUndefined(draft.experienceText),
+      thumbnailImageUrl: emptyToUndefined(draft.thumbnailImageUrl),
 
       publishedAt: new Date(),
     })
@@ -288,47 +313,63 @@ export async function publishOpportunityDraft(
   draft: typeof opportunityListingDrafts.$inferSelect,
   providerId: string
 ) {
+  const title = emptyToUndefined(draft.title) ?? "Untitled Opportunity";
+
+  const slug = `${title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")}-${draft.id.slice(0, 6)}`;
+
   const [row] = await tx
     .insert(opportunityListings)
     .values({
       providerId,
-      slug: `${draft.title.toLowerCase().replaceAll(" ", "-")}-${draft.id.slice(0, 6)}`,
+      slug,
       status: "published",
 
-      title: draft.title,
-      category: draft.category,
-      shortSummary: draft.shortSummary,
-      fullDescription: draft.fullDescription,
+      title,
+      category: emptyToUndefined(draft.category),
+      shortSummary: emptyToUndefined(draft.shortSummary),
+      fullDescription: emptyToUndefined(draft.fullDescription),
 
-      province: draft.province,
-      district: draft.district,
-      city: draft.city,
-      postalCode: draft.postalCode,
+      province: emptyToUndefined(draft.province),
+      district: emptyToUndefined(draft.district),
+      city: emptyToUndefined(draft.city),
+      postalCode: emptyToUndefined(draft.postalCode),
 
-      projectStartDate: draft.projectStartDate,
-      expectedCompletionDate: draft.expectedCompletionDate,
+      projectStartDate: draft.projectStartDate ?? undefined,
+      expectedCompletionDate: draft.expectedCompletionDate ?? undefined,
 
-      coverImageUrl: draft.coverImageUrl,
+      coverImageUrl: emptyToUndefined(draft.coverImageUrl),
 
-      investmentType: draft.investmentType,
-      expectedRoiText: draft.expectedRoiText,
-      fundingGoal: draft.fundingGoal,
-      minimumRaiseAmount: draft.minimumRaiseAmount,
-      minimumInvestment: draft.minimumInvestment,
-      maximumInvestment: draft.maximumInvestment,
+      investmentType: emptyToUndefined(draft.investmentType),
+      expectedRoiText: emptyToUndefined(draft.expectedRoiText),
 
-      dealDurationValue: draft.dealDurationValue,
-      dealDurationUnit: draft.dealDurationUnit,
-      fundingDeadline: draft.fundingDeadline,
-      investorBenefitsText: draft.investorBenefitsText,
+      fundingGoal: numberStringOrUndefined(draft.fundingGoal),
+      minimumRaiseAmount: numberStringOrUndefined(draft.minimumRaiseAmount),
+      minimumInvestment: numberStringOrUndefined(draft.minimumInvestment),
+      maximumInvestment: numberStringOrUndefined(draft.maximumInvestment),
 
-      riskLevel: draft.riskLevel,
-      riskInvestorsMayLoseCapital: draft.riskInvestorsMayLoseCapital,
-      riskReturnsNotGuaranteed: draft.riskReturnsNotGuaranteed,
-      riskTimelineMayChange: draft.riskTimelineMayChange,
+      dealDurationValue: draft.dealDurationValue ?? undefined,
+      dealDurationUnit: emptyToUndefined(draft.dealDurationUnit),
+      fundingDeadline: draft.fundingDeadline ?? undefined,
+      investorBenefitsText: emptyToUndefined(draft.investorBenefitsText),
 
-      complianceInfoAccurate: draft.complianceInfoAccurate,
-      compliancePlatformPolicies: draft.compliancePlatformPolicies,
+      riskLevel: emptyToUndefined(draft.riskLevel),
+      riskInvestorsMayLoseCapital: booleanOrFalse(
+        draft.riskInvestorsMayLoseCapital
+      ),
+      riskReturnsNotGuaranteed: booleanOrFalse(
+        draft.riskReturnsNotGuaranteed
+      ),
+      riskTimelineMayChange: booleanOrFalse(draft.riskTimelineMayChange),
+
+      complianceInfoAccurate: booleanOrFalse(draft.complianceInfoAccurate),
+      compliancePlatformPolicies: booleanOrFalse(
+        draft.compliancePlatformPolicies
+      ),
 
       publishedAt: new Date(),
     })

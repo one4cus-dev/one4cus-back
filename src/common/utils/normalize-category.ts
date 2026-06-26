@@ -1,4 +1,4 @@
-// src/common/utils/normalize-category.ts
+// src\common\utils\normalize-category.ts
 
 export type ServiceCategory =
   | "Plumbing"
